@@ -7,7 +7,7 @@ on:
 
 jobs:
   sync:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     env:
       UPSTREAM_REPO: scsibug/nostr-rs-relay
@@ -99,7 +99,7 @@ jobs:
 
   build:
     needs: sync
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: needs.sync.outputs.tag != '' && needs.sync.outputs.tag != null
     permissions:
       packages: write
