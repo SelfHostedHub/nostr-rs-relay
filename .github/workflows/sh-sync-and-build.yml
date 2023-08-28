@@ -27,11 +27,13 @@ jobs:
       - name: Check for new tag
         id: check_tag
         run: |
-          git fetch upstream --tags
-          LATEST_UPSTREAM_TAG=$(git describe --tags `git ls-remote --tags upstream | sort -t '/' -k 3 -V | awk '{print $2}' | tail -n1`)
+          # Fetch only the tag information without actually fetching the tags
+          git ls-remote --tags upstream > upstream_tags.txt
+          LATEST_UPSTREAM_TAG=$(awk '{print $2}' upstream_tags.txt | sort -t '/' -k 3 -V | tail -n1 | sed 's/refs\/tags\///')
           LATEST_MY_TAG=$(git describe --tags `git ls-remote --tags origin | sort -t '/' -k 3 -V | awk '{print $2}' | tail -n1`)
+          
+          # Now perform the check
           if [ "$LATEST_UPSTREAM_TAG" != "$LATEST_MY_TAG" ]; then
-            # Check if the tag already exists locally
             if git tag | grep -q "$LATEST_UPSTREAM_TAG"; then
               echo "Tag $LATEST_UPSTREAM_TAG already exists locally. Skipping..."
               echo "::set-output name=new_tag::false"
@@ -39,6 +41,9 @@ jobs:
               echo "New tag detected: $LATEST_UPSTREAM_TAG"
               echo "::set-output name=new_tag::true"
               echo "::set-output name=tag::${LATEST_UPSTREAM_TAG}"
+              
+              # Now fetch the new tag
+              git fetch upstream --tags
             fi
           else
             echo "No new tag found."
