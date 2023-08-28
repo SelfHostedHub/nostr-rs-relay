@@ -27,10 +27,14 @@ jobs:
       - name: Check for new tag
         id: check_tag
         run: |
-          # Fetch only the tag information without actually fetching the tags
-          git ls-remote --tags upstream > upstream_tags.txt
-          LATEST_UPSTREAM_TAG=$(awk '{print $2}' upstream_tags.txt | sort -t '/' -k 3 -V | tail -n1 | sed 's/refs\/tags\///')
-          LATEST_MY_TAG=$(git describe --tags `git ls-remote --tags origin | sort -t '/' -k 3 -V | awk '{print $2}' | tail -n1`)
+          # Fetch only the branch information from upstream
+          git fetch upstream
+          
+          # Get the latest upstream tag
+          LATEST_UPSTREAM_TAG=$(git ls-remote --tags upstream | awk '{print $2}' | grep -v '{}' | sort -t '/' -k 3 -V | tail -n1 | sed 's/refs\/tags\///')
+          
+          # Get the latest local tag
+          LATEST_MY_TAG=$(git describe --tags `git ls-remote --tags origin | awk '{print $2}' | grep -v '{}' | sort -t '/' -k 3 -V | tail -n1 | sed 's/refs\/tags\///'`)
           
           # Now perform the check
           if [ "$LATEST_UPSTREAM_TAG" != "$LATEST_MY_TAG" ]; then
@@ -42,13 +46,14 @@ jobs:
               echo "::set-output name=new_tag::true"
               echo "::set-output name=tag::${LATEST_UPSTREAM_TAG}"
               
-              # Now fetch the new tag
-              git fetch upstream --tags
+              # Now fetch the specific new tag
+              git fetch upstream tag $LATEST_UPSTREAM_TAG
             fi
           else
             echo "No new tag found."
             echo "::set-output name=new_tag::false"
           fi
+
 
       - name: Sync changes if needed
         id: sync_changes
