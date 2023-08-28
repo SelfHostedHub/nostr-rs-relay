@@ -31,9 +31,15 @@ jobs:
           LATEST_UPSTREAM_TAG=$(git describe --tags `git ls-remote --tags upstream | sort -t '/' -k 3 -V | awk '{print $2}' | tail -n1`)
           LATEST_MY_TAG=$(git describe --tags `git ls-remote --tags origin | sort -t '/' -k 3 -V | awk '{print $2}' | tail -n1`)
           if [ "$LATEST_UPSTREAM_TAG" != "$LATEST_MY_TAG" ]; then
-            echo "New tag detected: $LATEST_UPSTREAM_TAG"
-            echo "::set-output name=new_tag::true"
-            echo "::set-output name=tag::${LATEST_UPSTREAM_TAG}"
+            # Check if the tag already exists locally
+            if git tag | grep -q "$LATEST_UPSTREAM_TAG"; then
+              echo "Tag $LATEST_UPSTREAM_TAG already exists locally. Skipping..."
+              echo "::set-output name=new_tag::false"
+            else
+              echo "New tag detected: $LATEST_UPSTREAM_TAG"
+              echo "::set-output name=new_tag::true"
+              echo "::set-output name=tag::${LATEST_UPSTREAM_TAG}"
+            fi
           else
             echo "No new tag found."
             echo "::set-output name=new_tag::false"
