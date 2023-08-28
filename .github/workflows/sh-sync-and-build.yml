@@ -150,3 +150,5 @@ jobs:
           push: true  
           tags: ${{ steps.builder-meta.outputs.tags }}
           labels: ${{ steps.builder-meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ github.repository }}
+          cache-to: type=gha,scope=${{ github.repository }},mode=max
