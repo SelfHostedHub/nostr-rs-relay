@@ -13,7 +13,6 @@ jobs:
       UPSTREAM_REPO: scsibug/nostr-rs-relay
       MY_REPO: SelfHostedHub/nostr-rs-relay
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKER_HOST: unix:///var/run/docker.sock
 
     steps:
       - name: Checkout code
@@ -105,6 +104,9 @@ jobs:
     permissions:
       packages: write
       contents: read
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
+
     steps:
       - name: Debug  
         run: echo "Tag from sync job is ${{ needs.sync.outputs.tag }}"
